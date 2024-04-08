@@ -8,6 +8,8 @@ import threading
 import time
 import json
 from utils.command_line_utils import CommandLineUtils
+import psutil
+from datetime import datetime
 
 # This sample uses the Message Broker for AWS IoT to send and receive messages
 # through an MQTT connection. On startup, the device connects to the server,
@@ -129,16 +131,24 @@ if __name__ == '__main__':
             print("Sending messages until program killed")
         else:
             print("Sending {} message(s)".format(message_count))
-
         publish_count = 1
         while (publish_count <= message_count) or (message_count == 0):
-            message = "{} [{}]".format(message_string, publish_count)
-            print("Publishing message to topic '{}': {}".format(message_topic, message))
-            message_json = json.dumps(message)
+            # message = "{} [{}]".format(message_string, publish_count)
+            # print("Publishing message to topic '{}': {}".format(message_topic, message))
+            # message_json = json.dumps(message)
+            message_json = json.dumps(
+                {
+                    # "time": int(time.time()),
+                    "time": datetime.now().strftime("%F %H:%M:%S:%f"),
+                    "quality": "GOOD",
+                    "hostname": "wbd_laptop",
+                    "value_cpu_percent": psutil.cpu_percent()
+                }, indent=2)
             mqtt_connection.publish(
                 topic=message_topic,
                 payload=message_json,
                 qos=mqtt.QoS.AT_LEAST_ONCE)
+            print(message_count)
             time.sleep(1)
             publish_count += 1
 
